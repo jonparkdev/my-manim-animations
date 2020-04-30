@@ -1,6 +1,160 @@
 from manimlib.imports import *
 
-class PropositonOne(Scene):
+class SceneOne(Scene):
+
+    def construct(self):
+        self.title_sequence()
+        self.wait()
+
+
+    def title_sequence(self):
+        title = TextMobject("Euclid's Elements").scale(2)
+        book = TextMobject("Book ").scale(1.5)
+        proposition = TextMobject("Proposition ").scale(1.5)
+
+        book_number = Integer(13).scale(1.5).next_to(book, RIGHT)
+        proposition_number = Integer(465).scale(1.5).next_to(proposition, RIGHT)
+
+        book_group = VGroup(book, book_number)
+        proposition_group = VGroup(proposition, proposition_number).next_to(book_group, DOWN)
+
+        anim_group = VGroup(book_group, proposition_group).move_to(ORIGIN)
+
+        def animate_numbers(low_num, high_num, final_num):
+            def func(alpha):
+                if(alpha == 1):
+                    return final_num
+                return np.random.uniform(low_num, high_num)
+            return func
+        self.play(Write(title), run_time=2)
+        self.wait(3)
+        self.play(
+            ReplacementTransform(title,anim_group),
+        )
+        self.play(
+            ChangingDecimal(book_number, animate_numbers(1, 13, 1)).set_run_time(2),
+            ChangingDecimal(proposition_number, animate_numbers(1, 465, 1)).set_run_time(3)
+        )
+        self.wait(1)
+        self.play(FadeOut(anim_group))
+
+    def scene_two(self):
+        pass
+
+class Problem(Scene):
+
+    def construct(self):
+        self.move_line()
+
+    def move_line(self):
+        point_a = self.a = Dot(LEFT, color=BLACK)
+        point_b = self.b =  Dot(RIGHT, color=BLACK)
+
+        line = self.initial_line = Line(point_a, point_b, stroke_width=6, color=BLACK)
+        self.wait()
+        self.play(FadeIn(line),FadeIn(point_a),FadeIn(point_b))
+        self.wait()
+        self.move_points()
+
+
+    def move_points(self):
+        np.random.seed(41)
+        movement_list_a = list(
+            zip(
+                np.random.random(4)*negative_or_positive(2),
+                np.random.random(4)*negative_or_positive(2),
+                [0, 0, 0, 0]
+            )
+        )
+        np.random.seed(42)
+        movement_list_b = list(
+            zip(
+                np.random.random(4)*negative_or_positive(2),
+                np.random.random(4)*negative_or_positive(2),
+                [0, 0, 0, 0]
+            )
+        )
+        count = 0
+        for a, b in zip(movement_list_a,movement_list_b):
+
+            if count % 2 == 0:
+                array_a = np.array(a) * -1
+                array_b = np.array(b) * -1
+            else:
+                array_a = np.array(a)
+                array_b = np.array(b)
+
+            count = count + 1
+
+            self.play(
+                ApplyMethod(
+                    self.initial_line.put_start_and_end_on,
+                    array_a,
+                    array_b
+                ),
+                ApplyMethod(self.a.move_to, array_a),
+                ApplyMethod(self.b.move_to, array_b)
+            )
+            self.wait()
+            length = self.initial_line.get_length()
+            left = self.a.get_center()
+            right = self.b.get_center()
+
+            positive_intersection, negative_intersection = get_circle_intersection(left, right, length, length)
+
+            if np.linalg.norm(positive_intersection) < np.linalg.norm(positive_intersection):
+                triangle_point = positive_intersection
+            else:
+                triangle_point = negative_intersection
+
+            triangle_point_mob=  Dot(triangle_point, color=BLACK)
+            line_with_a= Line(self.a, triangle_point_mob, stroke_width=6)
+            line_with_b= Line(self.b, triangle_point_mob, stroke_width=6)
+            triangle = Polygon(
+                triangle_point,
+                left,
+                right
+            ).set_stroke(color=None, width=0)
+            triangle.set_fill(BLACK, opacity = 0.5)
+
+            self.play(
+                FadeIn(triangle),
+                FadeIn(triangle_point_mob),
+                FadeIn(line_with_a),
+                FadeIn(line_with_b)
+            )
+            self.play(
+                FadeOut(triangle),
+                FadeOut(triangle_point_mob),
+                FadeOut(line_with_a),
+                FadeOut(line_with_b)
+            )
+
+        self.play(
+            ApplyMethod(
+                self.initial_line.put_start_and_end_on,
+                LEFT,
+                RIGHT
+            ),
+            ApplyMethod(self.a.move_to, LEFT),
+            ApplyMethod(self.b.move_to, RIGHT)
+        )
+
+        self.wait()
+
+        self.play(Uncreate(self.initial_line))
+        self.wait()
+
+
+        # animations = [
+        #     self.update_point_mob(self.a, movement) for movement in movement_list
+        # ]
+        # for anim in animations:
+        #     self.play(anim)
+
+
+
+class Construction(Scene):
     CONFIG = {
         "left_circle_center" : LEFT,
         "right_circle_center" : RIGHT,
@@ -10,42 +164,14 @@ class PropositonOne(Scene):
     }
 
     def construct(self):
-        self.scene_one()
-        self.wait(5)
         self.initial_line()
-
-
-    def scene_one(self):
-        title = TextMobject("Euclid's Elements").scale(2)
-        book = TextMobject("Book ").scale(1.5)
-        proposition = TextMobject("Proposition ").scale(1.5)
-
-        book_number = Integer(1).scale(1.5).next_to(book, RIGHT)
-        proposition_number = Integer(1).scale(1.5).next_to(proposition, RIGHT)
-        book_group = VGroup(book, book_number)
-        proposition_group = VGroup(proposition, proposition_number).align_to(book_group, DOWN)
-        title_group = VGroup(book_group, proposition_group).center()
-        def book_number_update_func(mob,alpha):
-            num = mob.get_value()
-            return mob.set_value((num + 1)%14)
-        def proposition_number_update_func(mob,alpha):
-            num = mob.get_value()
-            random_num = int(np.random.uniform(50, 100))
-            return mob.set_value((num + random_num)%466)
-
-        self.play(Write(title))
-        self.play(ReplacementTransform(title, title_group))
-        book_number_update = UpdateFromAlphaFunc(book_number, book_number_update_func, run_time=2)
-        proposition_number_update = UpdateFromAlphaFunc(proposition_number, proposition_number_update_func, run_time=3)
-        self.play(book_number_update,proposition_number_update)
-        self.add(book_number.set_value(1))
 
     def initial_line(self):
         # create objects
         radius_a = DashedLine(LEFT, RIGHT, color=BLACK)
         radius_b = DashedLine(RIGHT, LEFT, color=BLACK).flip(LEFT)
 
-        positive_intersection, negative_intersection = self.get_circle_intersection(LEFT, RIGHT, self.radius, self.radius)
+        positive_intersection, negative_intersection = get_circle_intersection(LEFT, RIGHT, self.radius, self.radius)
         point_c = Dot(positive_intersection, color=self.point_color)
         line_ab = Line(LEFT, RIGHT, stroke_width=6, color=self.point_color)
 
@@ -75,9 +201,10 @@ class PropositonOne(Scene):
             point_b,
             )
 
-        # animate
-        self.play(FadeIn(point_a))
-        self.play(FadeIn(point_b))
+        self.add(point_a)
+        self.add(point_b)
+        self.wait()
+
         # Construct circle about point A
         self.play(ShowCreation(radius_a))
         self.play(
@@ -117,7 +244,7 @@ class PropositonOne(Scene):
             ApplyMethod(b_group.shift, RIGHT * 1.5)
         )
 
-        self.play(ApplyMethod(b_group.flip, UP))
+        # self.play(ApplyMethod(b_group.flip, UP))
 
         # compass animation
         self.play(Uncreate(line_ab))
@@ -126,12 +253,21 @@ class PropositonOne(Scene):
         compass_line = self.compass_line =  DashedLine(point_a.get_center(), compass_point_mob)
         line_ac_angle = (np.pi/2) - angle_of_vector(point_c.get_center() - point_a.get_center())
         n_thetas = [-np.pi/2]*3 + [-line_ac_angle]
-        print(line_ac_angle)
+
         self.play(ShowCreation(compass_line))
         self.play(FadeIn(compass_point_mob))
 
         self.change_points(n_thetas , point_a.get_center())
-        self.pop_points(n_thetas, point_a.get_center())
+        # fade_lines = [FadeOut(line) for line, point in self.example_lines]
+        remove_example_lines = [FadeOut(mob) for mob in it.chain(*self.example_lines)]
+        self.play(*remove_example_lines)
+        self.remove_compass(n_thetas, point_a.get_center())
+
+        self.play(Uncreate(self.compass_line))
+        print(line_ab.get_center())
+
+        self.wait()
+
     '''
     Helper functions
     '''
@@ -177,21 +313,16 @@ class PropositonOne(Scene):
             self.add(example_line, example_point, self.point_a)
 
 
-    def pop_points(self, n_thetas, circle_center):
+    def remove_compass(self, n_thetas, circle_center):
         # total_theta = -sum(n_thetas)
         self.example_lines
-        n_thetas.reverse()
-        line = self.example_lines.pop()
-        self.remove(line[0], line[1])
-        for theta in n_thetas:
-            line= self.example_lines.pop()
-            self.play(
-                self.get_compass_point_update(
-                    self.compass_point_mob, -theta , circle_center, func=linear, run=-(theta/(np.pi/2))
-                ),
-                self.get_compass_update(circle_center),
-            )
-            self.remove(line[0], line[1])
+        theta = sum(n_thetas)
+        self.play(
+            self.get_compass_point_update(
+                self.compass_point_mob, -theta , circle_center
+            ),
+            self.get_compass_update(circle_center),
+        )
 
     def pop_lines(self, circle_center):
         def pop(mobject, alpha):
@@ -217,87 +348,88 @@ class PropositonOne(Scene):
         point_mobs.set_color(self.point_color)
         return point_mobs
 
-    def get_random_points(self):
-        pass
+def negative_or_positive(max_num):
 
-    def get_circle_intersection(self, origin_a, origin_b, r_1, r_2):
-        """(numpy R^3 array, numpy R^3 array, float, float) -> numpy R^3 array
+    return max_num * 1 if np.random.random() < 0.5 else -1 * max_num
 
-        Returns the intersection point(s) of two circles given the origin
-        coordinates,origin_a and origin_b, of each circle and radii r_1, r_2
+def get_circle_intersection(origin_a, origin_b, r_1, r_2):
+    """(numpy R^3 array, numpy R^3 array, float, float) -> numpy R^3 array
 
-        pre-conditions:
-            - The two given circles intersect at > 0 points
-        """
-        # For now we will be working in 2D space and will ignore the z
-        # coordinate
+    Returns the intersection point(s) of two circles given the origin
+    coordinates,origin_a and origin_b, of each circle and radii r_1, r_2
 
-        x_1, y_1, z_1 = origin_a
-        x_2, y_2, z_2 = origin_b
+    pre-conditions:
+        - The two given circles intersect at > 0 points
+    """
+    # For now we will be working in 2D space and will ignore the z
+    # coordinate
 
-        """
-        Our algorithm,
-        Strictly using algebraic equations of our circles,
+    x_1, y_1, z_1 = origin_a
+    x_2, y_2, z_2 = origin_b
 
-            (1) (x-x_1)^2 + (y-y_1)^2 = r_1^2
-            (2) (x-x_2)^2 + (y-y_2)^2 = r_2^2
+    """
+    Our algorithm,
+    Strictly using algebraic equations of our circles,
 
-        Subtracting (2) from (1) and magically rearranging we get,
+        (1) (x-x_1)^2 + (y-y_1)^2 = r_1^2
+        (2) (x-x_2)^2 + (y-y_2)^2 = r_2^2
 
-            y = -[(x_1 - x_2)/(y_1 - y_2)]x +
-                [(r_1^2-r_2^2)-(x_1^2-x_2^2)-(y_1^2-y_2^2)] / (y_1 - y_2)
+    Subtracting (2) from (1) and magically rearranging we get,
 
-                let v = [(r_1^2-r_2^2)-(x_1^2-x_2^2)-(y_1^2-y_2^2)] / -2 * (y_1 - y_2) so,
+        y = -[(x_1 - x_2)/(y_1 - y_2)]x +
+            [(r_1^2-r_2^2)-(x_1^2-x_2^2)-(y_1^2-y_2^2)] / (y_1 - y_2)
 
-            (3) y =  -[(x_1 - x_2)/(y_1 - y_2)]x + v
+            let v = [(r_1^2-r_2^2)-(x_1^2-x_2^2)-(y_1^2-y_2^2)] / -2 * (y_1 - y_2) so,
 
-        Substituting our y back into (1) and some more algebra we get the
-        quadratic (if your thinking, that looks tedious, you are correct):
+        (3) y =  -[(x_1 - x_2)/(y_1 - y_2)]x + v
 
-            (x-x_1)^2 + (-[(x_1 - x_2)/(y_1 - y_2)]x + v - y_1)^2 = r_1^2
-            .
-            .
-            .
-            Some quadratic formula
+    Substituting our y back into (1) and some more algebra we get the
+    quadratic (if your thinking, that looks tedious, you are correct):
 
-        Then use quadratic formula to solve for x, then use x in (3) to solve
-        for y
-        """
+        (x-x_1)^2 + (-[(x_1 - x_2)/(y_1 - y_2)]x + v - y_1)^2 = r_1^2
+        .
+        .
+        .
+        Some quadratic formula
 
-        # if origins of the two circles fall on the same axis
-        if y_1 == y_2 and x_1 == x_2:
-            raise ValueError("circles cannot be centred on the same origin")
-        elif y_1 == y_2:
-            # Denoting constant values in above formulas
-            constant = (y_1-y_2)/(x_1-x_2)
-            v = ((r_1**2-r_2**2)-(x_1**2-x_2**2)-(y_1**2-y_2**2)) / (-2 * (x_1 - x_2))
-            root = 'y'
-        else:
-            # Denoting constant values in above formulas
-            constant = (x_1-x_2)/(y_1-y_2)
-            v = ((r_1**2-r_2**2)-(x_1**2-x_2**2)-(y_1**2-y_2**2)) / (-2 * (y_1 - y_2))
-            root = 'x'
+    Then use quadratic formula to solve for x, then use x in (3) to solve
+    for y
+    """
 
-        if (root == 'x'):
-             # quadratic formula to find roots along the x-axis
-            a = (1.0 + constant**2)
-            b = -2 * (x_1 + (constant * (v - y_1)))
-            c = (v - y_1)**2  - r_1**2
-            positive_x = (-b + np.sqrt(b**2 - 4*a*c)) / 2 * a
-            negative_x = (-b - np.sqrt(b**2 - 4*a*c)) / 2 * a
-            positive_y = -(constant) * positive_x + v
-            negative_y = -(constant) * negative_x + v
+    # if origins of the two circles fall on the same axis
+    if y_1 == y_2 and x_1 == x_2:
+        raise ValueError("circles cannot be centred on the same origin")
+    elif y_1 == y_2:
+        # Denoting constant values in above formulas
+        constant = (y_1-y_2)/(x_1-x_2)
+        v = ((r_1**2-r_2**2)-(x_1**2-x_2**2)-(y_1**2-y_2**2)) / ((-2) * (x_1 - x_2))
+        root = 'y'
+    else:
+        # Denoting constant values in above formulas
+        constant = (x_1-x_2)/(y_1-y_2)
+        v = ((r_1**2-r_2**2)-(x_1**2-x_2**2)-(y_1**2-y_2**2)) / ((-2) * (y_1 - y_2))
+        root = 'x'
 
-        else:
-            # quadratic formula to find the roots along the y-axis
-            a = (1 + constant**2)
-            b = -2 * (y_1 + (constant * (v - x_1)))
-            c = (v - x_1)**2  - r_1**2
-            y = (-b + np.sqrt(b**2 - 4*a*c)) / 2 * a
-            x = -(constant) * y + v
-            positive_y = (-b + np.sqrt(b**2 - 4*a*c)) / 2 * a
-            negative_y = (-b - np.sqrt(b**2 - 4*a*c)) / 2 * a
-            positive_x = -(constant) * positive_y + v
-            negative_x = -(constant) * negative_y + v
+    if (root == 'x'):
+         # quadratic formula to find roots along the x-axis
+        a = (1.0 + constant**2)
+        b = (-2) * (x_1 + (constant * (v - y_1)))
+        c = x_1**2 + (v - y_1)**2  - r_1**2
+        positive_x = ((-b) + np.sqrt(b**2 - 4*a*c)) / (2 * a)
+        negative_x = ((-b) - np.sqrt(b**2 - 4*a*c)) / (2 * a)
+        positive_y = (-constant) * positive_x + v
+        negative_y = (-constant) * negative_x + v
 
-        return [np.array((positive_x, positive_y, 0)), np.array((negative_x, negative_y, 0))]
+    else:
+        # quadratic formula to find the roots along the y-axis
+        a = (1 + constant**2)
+        b = -2 * (y_1 + (constant * (v - x_1)))
+        c = y_1**2 + (v - x_1)**2  - r_1**2
+        y = (-b + np.sqrt(b**2 - 4*a*c)) / 2 * a
+        x = -(constant) * y + v
+        positive_y = ((-b) + np.sqrt(b**2 - 4*a*c)) / (2 * a)
+        negative_y = ((-b) - np.sqrt(b**2 - 4*a*c)) / (2 * a)
+        positive_x = (-constant) * positive_y + v
+        negative_x = (-constant) * negative_y + v
+
+    return [np.array((positive_x, positive_y, 0)), np.array((negative_x, negative_y, 0))]
