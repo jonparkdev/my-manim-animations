@@ -27,16 +27,21 @@ class SceneOne(Scene):
                 return np.random.uniform(low_num, high_num)
             return func
         self.play(Write(title), run_time=2)
-        self.wait(3)
+        self.wait(4)
         self.play(
             ReplacementTransform(title,anim_group),
         )
         self.play(
-            ChangingDecimal(book_number, animate_numbers(1, 13, 1)).set_run_time(2),
-            ChangingDecimal(proposition_number, animate_numbers(1, 465, 1)).set_run_time(3)
+            ChangingDecimal(book_number, animate_numbers(1, 13, 1)).set_run_time(3),
+            ChangingDecimal(proposition_number, animate_numbers(1, 465, 1)).set_run_time(4)
         )
         self.wait(1)
         self.play(FadeOut(anim_group))
+
+        rules = TextMobject("The rules of the game:")
+        rule1 = TextMobject("The claim")
+        rule2 = TextMobject("The construction using only a compass and straight edge")
+        rule3 = TextMobject("The proof")
 
     def scene_two(self):
         pass
@@ -192,12 +197,14 @@ class Construction(Scene):
             point_b.copy(),
             point_a,
             )
+
+        copy_line_ab = line_ab.copy()
         b_group = VGroup(
             circle_about_b,
             line_bc,
             point_c.copy(),
             point_a.copy(),
-            line_ab.copy(),
+            copy_line_ab,
             point_b,
             )
 
@@ -239,15 +246,21 @@ class Construction(Scene):
         self.play(ShowCreation(line_ac))
         self.play(ShowCreation(line_bc))
 
+        prove = TextMobject("Prove it!")
         self.play(
             ApplyMethod(a_group.shift, LEFT * 1.5),
             ApplyMethod(b_group.shift, RIGHT * 1.5)
         )
+        self.wait(2)
 
-        # self.play(ApplyMethod(b_group.flip, UP))
-
-        # compass animation
-        self.play(Uncreate(line_ab))
+        self.play(
+            WiggleOutThenIn(line_ab, rotation_angle=.05 * TAU, scale_value=.7),
+                WiggleOutThenIn(line_ac, rotation_angle=.05 * TAU, scale_value=.7)
+        )
+            # compass animation
+        replaced_line_ab= line_ab.copy()
+        self.play(ReplacementTransform(line_ab, replaced_line_ab))
+        self.play(Uncreate(replaced_line_ab))
         compass_point = point_a.get_center() + RIGHT * self.radius
         compass_point_mob = self.compass_point_mob = Dot(compass_point, color=BLACK)
         compass_line = self.compass_line =  DashedLine(point_a.get_center(), compass_point_mob)
@@ -264,9 +277,47 @@ class Construction(Scene):
         self.remove_compass(n_thetas, point_a.get_center())
 
         self.play(Uncreate(self.compass_line))
-        print(line_ab.get_center())
-
+        self.remove(compass_point_mob)
+        self.play(ShowCreation(line_ab))
+        self.play(
+            WiggleOutThenIn(line_ab, rotation_angle=.05 * TAU, scale_value=.7),
+        )
+        self.play(
+            WiggleOutThenIn(line_ac, rotation_angle=.05 * TAU, scale_value=.7),
+        )
         self.wait()
+        self.play(
+            WiggleOutThenIn(copy_line_ab, rotation_angle=.05 * TAU, scale_value=.7)
+        )
+        self.play(
+            WiggleOutThenIn(line_bc, rotation_angle=.05 * TAU, scale_value=.7)
+        )
+
+        self.play(
+            FadeOut(circle_about_a),
+            FadeOut(circle_about_b)
+        )
+        a_group.remove(circle_about_a)
+        b_group.remove(circle_about_b)
+
+        self.play(
+            ApplyMethod(a_group.shift, RIGHT * 1.5),
+            ApplyMethod(b_group.shift, LEFT * 1.5)
+        )
+        triangle = Polygon(
+            point_a.get_center(),
+            point_b.get_center(),
+            point_c.get_center()
+        ).set_fill(
+            BLACK, opacity=.3
+        ).set_stroke(
+            color=None, width=0
+        )
+        self.play(FadeIn(triangle))
+
+        qed= TextMobject("Being what is required to do.").next_to(a_group, DOWN*2)
+        self.play(Write(qed))
+        self.wait(2)
 
     '''
     Helper functions
