@@ -255,6 +255,9 @@ COLOR_MAP = {
     "LIGHT_PINK": "#DC75CD",
     "GREEN_SCREEN": "#00FF00",
     "ORANGE": "#FF862F",
+    "BYRNE_YELLOW": "#F2B41E",
+    "BYRNE_RED": "#D94C1A",
+    "BYRNE_BLUE": "#27599A"
 }
 PALETTE = list(COLOR_MAP.values())
 locals().update(COLOR_MAP)

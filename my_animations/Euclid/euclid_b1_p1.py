@@ -8,7 +8,7 @@ class SceneOne(Scene):
 
 
     def title_sequence(self):
-        title = TextMobject("Euclid's Elements").scale(2)
+        title = TextMobject("Euclid's Elements", fill_color=BLACK).scale(2)
         book = TextMobject("Book ").scale(1.5)
         proposition = TextMobject("Proposition ").scale(1.5)
 
@@ -20,6 +20,13 @@ class SceneOne(Scene):
 
         anim_group = VGroup(book_group, proposition_group).move_to(ORIGIN)
 
+        rules = TextMobject("Rules of the Game:").scale(1.2)
+        rule1 = TexMobject("\cdot \\text{ A claim is made asserting something to be true}").move_to(UP * .5 + LEFT * 5 , LEFT)
+        rule2 = TexMobject("\cdot \\text{ Straight edge and compass }").move_to(DOWN * .5 + LEFT * 5, LEFT)
+        rule3 = TexMobject("\cdot \\text{ Prove it!}").move_to(1.5 * DOWN + LEFT * 5, LEFT)
+
+
+
         def animate_numbers(low_num, high_num, final_num):
             def func(alpha):
                 if(alpha == 1):
@@ -28,8 +35,18 @@ class SceneOne(Scene):
             return func
         self.play(Write(title), run_time=2)
         self.wait(4)
+        self.play(FadeOut(title))
+        self.play(Write(rules),  run_time=2)
+        self.play(ApplyMethod(rules.shift, 2 * UP + 3 * LEFT))
+        self.play(FadeIn(rule1))
+        self.wait(10)
+        self.play(FadeIn(rule2))
+        self.wait(10)
+        self.play(FadeIn(rule3))
+        self.wait(10)
+        self.play(FadeOut(rule1),FadeOut(rule2),FadeOut(rule3))
         self.play(
-            ReplacementTransform(title,anim_group),
+            ReplacementTransform(rules,anim_group),
         )
         self.play(
             ChangingDecimal(book_number, animate_numbers(1, 13, 1)).set_run_time(3),
@@ -38,10 +55,6 @@ class SceneOne(Scene):
         self.wait(1)
         self.play(FadeOut(anim_group))
 
-        rules = TextMobject("The rules of the game:")
-        rule1 = TextMobject("The claim")
-        rule2 = TextMobject("The construction using only a compass and straight edge")
-        rule3 = TextMobject("The proof")
 
     def scene_two(self):
         pass
@@ -66,17 +79,17 @@ class Problem(Scene):
         np.random.seed(41)
         movement_list_a = list(
             zip(
-                np.random.random(4)*negative_or_positive(2),
-                np.random.random(4)*negative_or_positive(2),
-                [0, 0, 0, 0]
+                np.random.random(3)*negative_or_positive(2),
+                np.random.random(3)*negative_or_positive(2),
+                [0, 0, 0,]
             )
         )
         np.random.seed(42)
         movement_list_b = list(
             zip(
-                np.random.random(4)*negative_or_positive(2),
-                np.random.random(4)*negative_or_positive(2),
-                [0, 0, 0, 0]
+                np.random.random(3)*negative_or_positive(2),
+                np.random.random(3)*negative_or_positive(2),
+                [0, 0, 0,]
             )
         )
         count = 0
@@ -113,8 +126,8 @@ class Problem(Scene):
                 triangle_point = negative_intersection
 
             triangle_point_mob=  Dot(triangle_point, color=BLACK)
-            line_with_a= Line(self.a, triangle_point_mob, stroke_width=6)
-            line_with_b= Line(self.b, triangle_point_mob, stroke_width=6)
+            line_with_a= Line(self.a, triangle_point_mob, stroke_width=6,color=BLACK)
+            line_with_b= Line(self.b, triangle_point_mob, stroke_width=6, color=BLACK)
             triangle = Polygon(
                 triangle_point,
                 left,
@@ -178,6 +191,7 @@ class Construction(Scene):
 
         positive_intersection, negative_intersection = get_circle_intersection(LEFT, RIGHT, self.radius, self.radius)
         point_c = Dot(positive_intersection, color=self.point_color)
+        lower_point= Dot(negative_intersection, color=self.point_color)
         line_ab = Line(LEFT, RIGHT, stroke_width=6, color=self.point_color)
 
         circle_about_a = Circle(radius=self.radius, stroke_width=6,arc_center=LEFT, color=BYRNE_BLUE)
@@ -208,12 +222,24 @@ class Construction(Scene):
             point_b,
             )
 
+        starting_line_ab = Line(point_a, point_b, stroke_width=6, color=BLACK)
+
+        self.add(starting_line_ab)
         self.add(point_a)
         self.add(point_b)
-        self.wait()
+        self.wait(3)
 
+        postulate = TextMobject("Postulate 3").move_to(2* UP)
+
+        self.play(Write(postulate))
+        self.wait(2)
+        self.play(FadeOut(postulate))
+
+        self.play(Uncreate(starting_line_ab))
+        self.wait(2)
         # Construct circle about point A
         self.play(ShowCreation(radius_a))
+        self.wait(2)
         self.play(
             ShowCreation(circle_about_a),
             Rotating(radius_a, angle = 2*np.pi, about_point = LEFT),
@@ -240,13 +266,48 @@ class Construction(Scene):
         ))
         # Add initial line back
         self.play(ShowCreation(line_ab))
-
+        self.wait(4)
+        self.play(FadeIn(point_c), FadeIn(lower_point))
+        self.wait(4)
+        self.play(FadeOut(lower_point))
+        self.wait(2)
         # construct new lines
-        self.play(FadeIn(point_c))
-        self.play(ShowCreation(line_ac))
-        self.play(ShowCreation(line_bc))
+        postulate1 = TextMobject("Postulate 1").move_to(3* UP)
+        self.play(Write(postulate1))
+        self.wait(2)
+        self.play(FadeOut(postulate1))
 
-        prove = TextMobject("Prove it!")
+        self.wait(2)
+        self.play(ShowCreation(line_ac))
+        self.wait(1)
+        self.play(ShowCreation(line_bc))
+        self.wait(4)
+
+
+        rotating_group = VGroup(line_ab, line_bc, line_ac, point_a, point_b, point_c)
+        about_point = rotating_group.get_center()
+        line_triangle = Line(about_point, DOWN, opacity=0)
+        move_group = VGroup(rotating_group, line_triangle)
+
+        self.play(FadeOut(circle_about_a), FadeOut(circle_about_b))
+        self.wait(5)
+        self.play(Rotating(rotating_group, about_point=about_point,run_time=1, rate_func= smooth, radians=TAU/3))
+        self.wait(.75)
+        self.play(Rotating(rotating_group, about_point=about_point,run_time=1, rate_func= smooth, radians=TAU/3))
+        self.wait(.75)
+        self.play(Rotating(rotating_group, about_point=about_point,run_time=1, rate_func= smooth, radians=TAU/3))
+        self.wait(.75)
+        self.play(Rotating(rotating_group, axis=UP, about_point=about_point,run_time=1, rate_func= smooth, radians=TAU/2))
+        self.wait(.75)
+        self.play(Rotating(rotating_group, axis=DOWN, about_point=about_point,run_time=1, rate_func= smooth, radians=TAU/2))
+        self.wait(.75)
+        self.play(Rotating(rotating_group, axis=RIGHT, about_point=about_point,run_time=1, rate_func= smooth, radians=TAU/2))
+        self.wait(.75)
+        self.play(Rotating(rotating_group, axis=LEFT, about_point=about_point,run_time=1, rate_func= smooth, radians=TAU/2))
+
+        self.wait(4)
+        self.play(FadeIn(circle_about_a), FadeIn(circle_about_b))
+        self.wait(3)
         self.play(
             ApplyMethod(a_group.shift, LEFT * 1.5),
             ApplyMethod(b_group.shift, RIGHT * 1.5)
@@ -255,21 +316,29 @@ class Construction(Scene):
 
         self.play(
             WiggleOutThenIn(line_ab, rotation_angle=.05 * TAU, scale_value=.7),
-                WiggleOutThenIn(line_ac, rotation_angle=.05 * TAU, scale_value=.7)
+
         )
+
+        self.play(
+            WiggleOutThenIn(line_ac, rotation_angle=.05 * TAU, scale_value=.7)
+
+        )
+
             # compass animation
         replaced_line_ab= line_ab.copy()
+
         self.play(ReplacementTransform(line_ab, replaced_line_ab))
+        self.wait(5)
         self.play(Uncreate(replaced_line_ab))
         compass_point = point_a.get_center() + RIGHT * self.radius
         compass_point_mob = self.compass_point_mob = Dot(compass_point, color=BLACK)
-        compass_line = self.compass_line =  DashedLine(point_a.get_center(), compass_point_mob)
+        compass_line = self.compass_line =  DashedLine(point_a.get_center(), compass_point_mob, color=BLACK)
         line_ac_angle = (np.pi/2) - angle_of_vector(point_c.get_center() - point_a.get_center())
         n_thetas = [-np.pi/2]*3 + [-line_ac_angle]
 
         self.play(ShowCreation(compass_line))
         self.play(FadeIn(compass_point_mob))
-
+        self.wait(1.5)
         self.change_points(n_thetas , point_a.get_center())
         # fade_lines = [FadeOut(line) for line, point in self.example_lines]
         remove_example_lines = [FadeOut(mob) for mob in it.chain(*self.example_lines)]
@@ -285,7 +354,7 @@ class Construction(Scene):
         self.play(
             WiggleOutThenIn(line_ac, rotation_angle=.05 * TAU, scale_value=.7),
         )
-        self.wait()
+        self.wait(2)
         self.play(
             WiggleOutThenIn(copy_line_ab, rotation_angle=.05 * TAU, scale_value=.7)
         )
@@ -293,17 +362,48 @@ class Construction(Scene):
             WiggleOutThenIn(line_bc, rotation_angle=.05 * TAU, scale_value=.7)
         )
 
+        self.wait(3)
+        self.play(
+            ApplyMethod(a_group.shift, RIGHT * 1.5),
+            ApplyMethod(b_group.shift, LEFT * 1.5)
+        )
+        self.remove(copy_line_ab)
+
+
+
+        self.play(
+            WiggleOutThenIn(line_bc, rotation_angle=.05 * TAU, scale_value=.7),
+            WiggleOutThenIn(line_ac, rotation_angle=.05 * TAU, scale_value=.7),
+        )
+        self.play(
+            WiggleOutThenIn(line_ab, rotation_angle=.05 * TAU, scale_value=.7),
+        )
+        self.wait()
+
+        common_notion = TextMobject("Common Notion 1").move_to(3* UP)
+        self.play(Write(common_notion))
+        self.wait(4)
+        self.play(FadeOut(common_notion))
         self.play(
             FadeOut(circle_about_a),
             FadeOut(circle_about_b)
         )
         a_group.remove(circle_about_a)
         b_group.remove(circle_about_b)
-
+        self.wait(3.5)
         self.play(
-            ApplyMethod(a_group.shift, RIGHT * 1.5),
-            ApplyMethod(b_group.shift, LEFT * 1.5)
+            WiggleOutThenIn(line_bc, rotation_angle=.05 * TAU, scale_value=.7),
+            WiggleOutThenIn(line_ac, rotation_angle=.05 * TAU, scale_value=.7),
+            WiggleOutThenIn(line_ab, rotation_angle=.05 * TAU, scale_value=.7),
         )
+
+        self.wait(2)
+
+
+        # self.play(
+        #     ApplyMethod(a_group.shift, RIGHT * 1.5),
+        #     ApplyMethod(b_group.shift, LEFT * 1.5)
+        # )
         triangle = Polygon(
             point_a.get_center(),
             point_b.get_center(),
@@ -314,7 +414,7 @@ class Construction(Scene):
             color=None, width=0
         )
         self.play(FadeIn(triangle))
-
+        self.wait(3)
         qed= TextMobject("Being what is required to do.").next_to(a_group, DOWN*2)
         self.play(Write(qed))
         self.wait(2)
@@ -352,6 +452,7 @@ class Construction(Scene):
         self.add(example_line, example_point, self.point_a)
 
         for theta in n_thetas:
+            self.wait(.5)
             self.play(
                 self.get_compass_point_update(
                     self.compass_point_mob, theta , circle_center

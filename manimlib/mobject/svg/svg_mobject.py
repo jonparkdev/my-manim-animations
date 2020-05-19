@@ -36,7 +36,7 @@ class SVGMobject(VMobject):
         "unpack_groups": True,  # if False, creates a hierarchy of VGroups
         "stroke_width": DEFAULT_STROKE_WIDTH,
         "fill_opacity": 1.0,
-        # "fill_color" : LIGHT_GREY,
+        "fill_color" : BLACK,
     }
 
     def __init__(self, file_name=None, **kwargs):
