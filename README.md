@@ -1,4 +1,10 @@
-# My projects can be found in the my_animations folder
+## Projects can be found in the my_animations folder
+
+### Euclid's Elements
+
+#### Book 1
+
+[Proposition 1](https://youtu.be/dqeAyDw0U60)
 
 ![logo](logo/cropped.png)
 
