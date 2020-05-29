@@ -4,7 +4,10 @@
 
 #### Book 1
 
-[Proposition 1](https://youtu.be/dqeAyDw0U60)
+- [Proposition 1](https://youtu.be/dqeAyDw0U60)
+
+
+---
 
 ![logo](logo/cropped.png)
 
